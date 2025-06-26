@@ -1,5 +1,7 @@
-﻿using HtmlAgilityPack;
+﻿using CsvHelper.Configuration;
+using HtmlAgilityPack;
 using System.IO.Compression;
+using WorkerService1.Repositories.MassiveRepository;
 
 namespace WorkerService1.Services
 {
@@ -7,23 +9,12 @@ namespace WorkerService1.Services
     {
         private readonly HttpClient httpClient;
         private string _extractPath = @"C:\MeusArquivosCNPJ\ExtractedFiles";
-
-        public CSVProcessorService()
+        private readonly CsvParserService _csvParserService;
+        private readonly IMassiveRepository _massiveRepository;
+        public CSVProcessorService(CsvParserService csvParserService = null)
         {
             httpClient = new HttpClient();
-        }
-
-        public void DeleteZipFiles()
-        {
-            if (Directory.Exists(_extractPath))
-            {
-                Directory.Delete(_extractPath, true);
-                Console.WriteLine("Pasta de extração removida com sucesso.");
-            }
-            else
-            {
-                Console.WriteLine("A pasta de extração não existe.");
-            }
+            _csvParserService = csvParserService;
         }
 
         public PriorityQueue<string, int> EnqueueItensToPriorityQueue()
@@ -67,13 +58,26 @@ namespace WorkerService1.Services
             await File.WriteAllBytesAsync(localZipPath, fileBytes);
 
             ZipFile.ExtractToDirectory(localZipPath, _extractPath);
-
+           var teste= EnqueueItensToPriorityQueue();
             //foreach (var zipFile in zipFiles)
             //{
             //    Console.WriteLine($"Extracting {zipFile}");
             //    ZipFile.ExtractToDirectory(zipFile, Path.Combine(extractPath, "ExtractedFiles"));
             //    break;
             //}
+        }
+      
+        public void DeleteZipFiles()
+        {
+            if (Directory.Exists(_extractPath))
+            {
+                Directory.Delete(_extractPath, true);
+                Console.WriteLine("Pasta de extração removida com sucesso.");
+            }
+            else
+            {
+                Console.WriteLine("A pasta de extração não existe.");
+            }
         }
 
         public async Task<string[]> GetZipFilesFromUrl(string url)
@@ -98,8 +102,12 @@ namespace WorkerService1.Services
 
             return zipFiles;
         }
-        public void ParseCSVToEntity()
+        private async Task ProcessFile<TEntity, TMap>(string filePath)
+               where TEntity : class
+               where TMap : ClassMap<TEntity>
         {
+            var entities = await _csvParserService.ParseToEntities<TEntity, TMap>(filePath);
+            await _massiveRepository.InsertDataAsync(entities);
         }
     }
 }
