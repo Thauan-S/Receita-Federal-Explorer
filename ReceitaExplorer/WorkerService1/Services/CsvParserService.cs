@@ -14,7 +14,7 @@ using WorkerService1.Repositories.NaturezaJuridicaRepository;
 
 namespace WorkerService1.Services
 {
-    public class CsvParserService
+    public class CsvParserService:ICSVParserService
     {
         private readonly ILogger<CsvParserService> _logger;
         private readonly ICnaeRepository _cnaeRepository;
@@ -65,7 +65,6 @@ namespace WorkerService1.Services
                     if (typeof(Entity) == typeof(Empresa))
                     {
                         datas = csv.GetRecords<Entity>()
-                             //.Take(10_000)
                              .ToList();
                         var naturezasJuridicas = await _naturezaJuridicaRepository.FindAll();
                         foreach (var empresa in (datas as List<Empresa>)!)
@@ -82,7 +81,6 @@ namespace WorkerService1.Services
                     if (typeof(Entity) == typeof(Socio))
                     {
                         datas = csv.GetRecords<Entity>()
-                            //.Take(50)
                             .ToList();
 
                         foreach (var socio in (datas as List<Socio>)!)
@@ -112,7 +110,6 @@ namespace WorkerService1.Services
                     if (typeof(Entity) == typeof(Estabelecimento))
                     {
                         datas = csv.GetRecords<Entity>()
-                            //.Take(50)
                             .ToList();
 
                         foreach (var est in (datas as List<Estabelecimento>)!)
@@ -148,7 +145,6 @@ namespace WorkerService1.Services
                     if (typeof(Entity) == typeof(Simples))
                     {
                         datas = csv.GetRecords<Entity>()
-                             //.Take(50)
                              .ToList();
 
                         foreach (var simp in (datas as List<Simples>)!)

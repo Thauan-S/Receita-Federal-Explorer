@@ -24,7 +24,7 @@ namespace WorkerService1.Entityes
 
 
         [Column("capital_social")]
-        public float CapitalSocial { get; set; }
+        public float? CapitalSocial { get; set; }
 
 
         [Column("porte")]
