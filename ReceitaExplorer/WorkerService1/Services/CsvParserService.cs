@@ -44,7 +44,12 @@ namespace WorkerService1.Services
             QualificacaoSocio? qualificacaoSocio;
             Motivo? motivo;
             NaturezaJuridica? naturezaJuridica;
-
+            var empresas = await _empresaRepository.FindAll();
+            var paises = await _paisRepository.FindAll();
+            var motivos = await _motivoRepository.FindAll();
+            var qualificacoesSocio = await _qualificacaoSocioRepository.FindAll();
+            var municipios = await _municipioRepository.FindAll();
+            var cnaes = await _cnaeRepository.FindAll();
             using (var reader = new StreamReader(CSVfilePath, encoding: Encoding.Latin1))
             using (var csv = new CsvReader(reader, new CsvConfiguration(System.Globalization.CultureInfo.InvariantCulture)
             {
@@ -65,12 +70,12 @@ namespace WorkerService1.Services
                     if (typeof(Entity) == typeof(Empresa))
                     {
                         datas = csv.GetRecords<Entity>()
+                            .Take(50000)
                              .ToList();
                         var naturezasJuridicas = await _naturezaJuridicaRepository.FindAll();
                         foreach (var empresa in (datas as List<Empresa>)!)
                         {
-                            naturezaJuridica = naturezasJuridicas
-                                                .FirstOrDefault(n => n.Codigo.Equals(empresa.IdNaturezaJuridica));
+                            naturezaJuridica = naturezasJuridicas.FirstOrDefault(n => n.Codigo==empresa.IdNaturezaJuridica);
                             if (naturezaJuridica == null)
                             {
                                 empresa.IdNaturezaJuridica = null;
@@ -81,25 +86,25 @@ namespace WorkerService1.Services
                     if (typeof(Entity) == typeof(Socio))
                     {
                         datas = csv.GetRecords<Entity>()
+                            .Take(50000)
                             .ToList();
-
+                        
                         foreach (var socio in (datas as List<Socio>)!)
                         {
 
-                            var empresa = await _empresaRepository.FindByIdAsync(socio.IdEmpresa);
+                            var empresa = empresas.FirstOrDefault(e=>e.Id.Equals( socio.IdEmpresa));
                             if (empresa == null)
                             {
                                 socio.IdEmpresa = null;
                             }
 
-                            pais = await _paisRepository.FindByIdAsync(socio.IdPais);
+                            pais = paises.FirstOrDefault(p=>p.Codigo.Equals( socio.IdPais));
                             if (pais == null)
                             {
                                 socio.IdPais = null;
                             }
 
-                            qualificacaoSocio = await _qualificacaoSocioRepository
-                                                           .FindByIdAsync(socio.IdQualificacaoSocio);
+                            qualificacaoSocio = qualificacoesSocio.FirstOrDefault(q => q.Codigo.Equals(socio.IdQualificacaoSocio));
                             if (qualificacaoSocio == null)
                             {
                                 socio.IdQualificacaoSocio = null;
@@ -110,50 +115,55 @@ namespace WorkerService1.Services
                     if (typeof(Entity) == typeof(Estabelecimento))
                     {
                         datas = csv.GetRecords<Entity>()
+                            .Take(50000)
                             .ToList();
 
                         foreach (var est in (datas as List<Estabelecimento>)!)
                         {
-                            var empresa = await _empresaRepository.FindByIdAsync(est.IdEmpresa);
+                            var empresa = empresas.FirstOrDefault(e => e.Id.Equals(est.IdEmpresa));
                             if (empresa == null)
                             {
                                 est.IdEmpresa = null;
                             }
-                            pais = await _paisRepository.FindByIdAsync(est.IdPais);
+                            pais = paises.FirstOrDefault(p=>p.Codigo.Equals( est.IdPais));
                             if (pais == null)
                             {
                                 est.IdPais = null;
                             }
-                            motivo = await _motivoRepository.FindByIdAsync(est.IdMotivo);
+                            motivo = motivos.FirstOrDefault(m => m.Codigo.Equals(est.IdMotivo));
                             if (motivo == null)
                             {
                                 est.IdMotivo = "01";
                             }
-                            var municipio = await _municipioRepository.FindByIdAsync(est.IdMunicipio);
+                            var municipio = municipios.FirstOrDefault(m=>m.Codigo.Equals(est.IdMunicipio));
                             if (municipio == null)
                             {
                                 est.IdMunicipio = null;
                             }
-                            var cnae = await _cnaeRepository.FindByIdAsync(est.IdCnae);
+                             var cnae =  cnaes.FirstOrDefault(c => c.Codigo.Equals(est.IdCnae));
                             if (cnae == null)
                             {
                                 est.IdCnae = null;
                             }
+
+ 
                         }
                         return datas;
                     }
                     if (typeof(Entity) == typeof(Simples))
                     {
-                        datas = csv.GetRecords<Entity>()
+                        datas = csv.GetRecords<Entity>()                            
+                            .Take(50000)
                              .ToList();
 
                         foreach (var simp in (datas as List<Simples>)!)
                         {
-                            var empresa = await _empresaRepository.FindByIdAsync(simp.IdEmpresa);
-                            if (empresa == null)
-                            {
-                                simp.IdEmpresa = null;
-                            }
+                           
+                                var empresa = empresas.FirstOrDefault(e => e.Id.Equals(simp.IdEmpresa));
+                                if (empresa == null)
+                                {
+                                    simp.IdEmpresa = null;
+                                }
                         }
                         return datas;
                     }

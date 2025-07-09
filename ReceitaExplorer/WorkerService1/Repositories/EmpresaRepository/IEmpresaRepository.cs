@@ -6,5 +6,6 @@ namespace WorkerService1.Repositories.EmpresaRepository
     public interface IEmpresaRepository
     {
         Task<Empresa?> FindByIdAsync(Guid? id);
+        Task<List<Empresa>> FindAll();
     }
 }

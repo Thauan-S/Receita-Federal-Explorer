@@ -46,16 +46,16 @@ namespace WorkerService1.Entityes
         [ForeignKey(nameof(QualificacaoSocio))]
         [Column("qualificacao_socio_id")]
         public string? IdQualificacaoSocio { get; set; }
-        public QualificacaoSocio QualificacaoSocio { get; set; }= new QualificacaoSocio();
+        public QualificacaoSocio? QualificacaoSocio { get; set; }
 
         [ForeignKey(nameof(Empresa))]
         [Column("empresa_id")]
         public Guid? IdEmpresa { get; set; }
-        public Empresa Empresa { get; set; } = new Empresa();
+        public Empresa? Empresa { get; set; }
 
         [ForeignKey(nameof(Pais))]
         [Column("pais_id")]
         public string? IdPais { get; set; }
-        public Pais Pais { get; set; } = new Pais();
+        public Pais? Pais { get; set; }
     }
 }

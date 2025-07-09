@@ -16,7 +16,7 @@ namespace WorkerService1.Repositories.CnaeRepository
 
         public async Task<List<Cnae>> FindAll()
         {
-            return await _appDbContext.Cnaes.ToListAsync();
+            return await _appDbContext.Cnaes.AsNoTracking().ToListAsync();
         }
 
         public async Task<Cnae?> FindByIdAsync(string id)

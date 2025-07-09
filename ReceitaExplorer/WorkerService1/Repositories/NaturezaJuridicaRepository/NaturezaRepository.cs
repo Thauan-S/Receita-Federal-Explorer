@@ -16,11 +16,12 @@ namespace WorkerService1.Repositories.NaturezaJuridicaRepository
 
         public async Task<List<NaturezaJuridica>> FindAll()
         {
-            return await _appDbContext.NaturezasJuridicas.ToListAsync();
+            return await _appDbContext.NaturezasJuridicas.AsNoTracking().ToListAsync();
         }
 
         public async Task<NaturezaJuridica?> FindByIdAsync(string id)
         {
+
             return await _appDbContext.NaturezasJuridicas.FindAsync(id);
         }
     }

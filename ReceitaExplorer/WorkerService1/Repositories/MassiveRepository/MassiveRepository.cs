@@ -30,7 +30,13 @@ namespace WorkerService1.Repositories.MassiveRepository
                 await AddManyAsync(entities, batchSize: 10_000);
                 return;
             }
-            await AddManyAsync(entities);
+            try
+            {
+                await AddManyAsync(entities);
+            }
+            catch (Exception ex) {
+                Console.WriteLine(ex.Message);
+                    }
         }
         private async Task AddManyAsync<T>(List<T> entities) where T : class
         {

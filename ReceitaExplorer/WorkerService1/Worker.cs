@@ -7,6 +7,7 @@ namespace WorkerService1
     {
         private readonly ILogger<Worker> _logger;
         private readonly IServiceScopeFactory _serviceScopeFactory;
+       
 
         public Worker(ILogger<Worker> logger, IServiceScopeFactory serviceScopeFactory)
         {
@@ -22,9 +23,10 @@ namespace WorkerService1
             
             using (var scope = _serviceScopeFactory.CreateScope())
             {
-                var csvProcessorService = scope.ServiceProvider.GetRequiredService<ICSVProcessorService>();
+               var csvProcessorService = scope.ServiceProvider.GetRequiredService<ICSVProcessorService>();
                 var zipFiles = await csvProcessorService.GetZipFilesFromUrl($"https://arquivos.receitafederal.gov.br/dados/cnpj/dados_abertos_cnpj/{currentYear}-{formatedMonth}/");
                 await csvProcessorService.ExtractZipFiles(zipFiles);
+                csvProcessorService.DeleteZipFiles();
             }
         }
     }

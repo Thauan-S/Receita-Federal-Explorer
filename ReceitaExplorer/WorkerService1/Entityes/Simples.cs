@@ -21,7 +21,7 @@ namespace WorkerService1.Entityes
         [ForeignKey(nameof(Empresa))]
         [Column("empresa_id")]
         public Guid? IdEmpresa { get; set; }
-        public Empresa Empresa { get; set; }= new Empresa();
+        public Empresa? Empresa { get; set; }
 
         [Column("opcao_pelo_simples")]
         public string OpcaoSimples { get; set; }=string.Empty;

@@ -15,9 +15,16 @@ namespace WorkerService1.Repositories.EmpresaRepository
             _appDbContext = appDbContext;
         }
 
+        public async Task<List<Empresa>> FindAll()
+        {
+            return await _appDbContext.Empresa
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
         public async  Task<Empresa?> FindByIdAsync(Guid? id)
         {
-            return await _appDbContext.Empresa.FirstOrDefaultAsync(e => e.Id == id);
+            return await _appDbContext.Empresa.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
         }
     }
 }

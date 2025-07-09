@@ -1,8 +1,7 @@
 ﻿using CsvHelper.Configuration;
 using HtmlAgilityPack;
-using Microsoft.Identity.Client;
+using System.IO;
 using System.IO.Compression;
-using System.Net.Http;
 using WorkerService1.Entityes;
 using WorkerService1.Mappers;
 using WorkerService1.Repositories.MassiveRepository;
@@ -18,7 +17,8 @@ namespace WorkerService1.Services
         private const string EXTRACTPATH = @"C:\MeusArquivosCNPJ\ExtractedFiles";
         private readonly IMassiveRepository _massiveRepository;
         private readonly ICSVParserService _csvParserService;
-        private  const string SIMPLES_PATTERN = @".*\d.*\.SIMPLES\.CSV\..+";
+        private  const string SIMPLES_PATTERN = "SIMPLES.CSV";
+        private  string  localZipPath = "";
         private readonly Dictionary<Type, Func<FileProcessingInfo, Task>> _fileProcessors;
         public CSVProcessorService(ICSVParserService csvParserService, IMassiveRepository massiveRepository, IHttpClientFactory httpClientFactory = null)
         {
@@ -45,20 +45,19 @@ namespace WorkerService1.Services
         {
             var priorityQueue = new PriorityQueue<FileProcessingInfo, int>();
             var allFiles = Directory.GetFiles(EXTRACTPATH);
-            
-            
-            var patternList = new List<(string pattern, Type entityType, Type mapperType, int priority)>
+
+                    var patternList = new List<(string pattern, Type entityType, Type mapperType, int priority)>
             {
                 (".CNAECSV", typeof(Cnae), typeof(CnaeMapper), 0),
                 (".MOTICSV", typeof(Motivo), typeof(MotivoMapper), 1),
                 (".MUNICCSV", typeof(Municipio), typeof(MunicipioMapper), 2),
                 (".NATJUCSV", typeof(NaturezaJuridica), typeof(NaturezaJuridicaMapper), 3),
-                (SIMPLES_PATTERN, typeof(Simples), typeof(SimplesMapper), 4),
-                (".PAISCSV", typeof(Pais), typeof(PaisMapper), 5),
-                (".QUALSCSV", typeof(QualificacaoSocio), typeof(QualificacoesSocioMapper), 6),
-                (".EMPRECSV", typeof(Empresa), typeof(EmpresaMapper), 7),
-                (".SOCIOCSV", typeof(Socio), typeof(SocioMapper), 8),
-                (".ESTABELE", typeof(Estabelecimento), typeof(EstabelecimentoMapper), 9)
+                (".PAISCSV", typeof(Pais), typeof(PaisMapper), 4),
+                (".QUALSCSV", typeof(QualificacaoSocio), typeof(QualificacoesSocioMapper), 5),
+                (".EMPRECSV", typeof(Empresa), typeof(EmpresaMapper), 6),
+                (".SOCIOCSV", typeof(Socio), typeof(SocioMapper), 7),
+                (".ESTABELE", typeof(Estabelecimento), typeof(EstabelecimentoMapper), 8),
+                (SIMPLES_PATTERN, typeof(Simples), typeof(SimplesMapper), 9),
             };
             
             foreach (var (pattern, entityType, mapperType, priority) in patternList)
@@ -75,53 +74,33 @@ namespace WorkerService1.Services
 
         public async Task ExtractZipFiles(string[] zipFiles)
         {
-            using var httpClient = _httpClientFactory.CreateClient();
-            var localZipPath = "";
+            
+
             if (!Directory.Exists(EXTRACTPATH))
             {
                 Directory.CreateDirectory(EXTRACTPATH);
             }
-            //       var list = zipFiles
-            //.Where(f => !f .Contains("Empresas"))
-            //.ToArray();
-            var list =   zipFiles.Where(f => f.Contains("Estabelecimentos6.zip"));
-            foreach (var zipFile in list)
-            {
-                var fileName = Path.GetFileName(zipFile);
 
-                 localZipPath = Path.Combine(EXTRACTPATH, fileName);
-
-                using var request = new HttpRequestMessage(HttpMethod.Get, zipFile);
-                using var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
-
-                response.EnsureSuccessStatusCode();
-
-                await using var stream = await response.Content.ReadAsStreamAsync();
-                await using var fileStream = File.Create(localZipPath);
-                await stream.CopyToAsync(fileStream);
-
-            }
-            //var fileName = Path.GetFileName(downloadUrl);
-            ////Qualificacoes.zip
-            //var localZipPath = Path.Combine(EXTRACTPATH, fileName);
-            ////C:\MeusArquivosCNPJ\ExtractedFiles\Qualificacoes.zip
-            //var fileBytes = await httpClient.GetByteArrayAsync(downloadUrl);
-            //await File.WriteAllBytesAsync(localZipPath, fileBytes);
-
+              await DownloadAndSaveZipFiles(zipFiles);
             try
             {
-               
-                foreach (var zipFile in zipFiles)
+                var zipfiles = Directory.GetFiles(EXTRACTPATH, "*.zip");
+                foreach (var zipFile in zipfiles)
                 {
+
+                   var fileName = Path.GetFileName(zipFile);
+
+                    localZipPath = Path.Combine(EXTRACTPATH, fileName);
                     Console.WriteLine($"Extracting {zipFile}");
                     ZipFile.ExtractToDirectory(localZipPath, EXTRACTPATH);
-                    break;
+
                 }
             }
-            catch (Exception err) {
+            catch (Exception err)
+            {
                 Console.WriteLine(err.Message);
             }
-                var priorityQueue = EnqueueItensToPriorityQueue();
+            var priorityQueue = EnqueueItensToPriorityQueue();
 
 
             // Processar todos os arquivos na ordem de prioridade
@@ -133,6 +112,7 @@ namespace WorkerService1.Services
                 if (_fileProcessors.TryGetValue(fileInfo.EntityType, out var processor))
                 {
                     await processor(fileInfo);
+                    File.Delete(fileInfo.FilePath);
                 }
                 else
                 {
@@ -142,17 +122,36 @@ namespace WorkerService1.Services
 
 
         }
-      
+
+        private  async Task DownloadAndSaveZipFiles(string[] zipFiles)
+        {
+            using var httpClient = _httpClientFactory.CreateClient();
+            foreach (var zipFile in zipFiles)
+            {
+                var fileName = Path.GetFileName(zipFile);
+
+                localZipPath = Path.Combine(EXTRACTPATH, fileName);
+
+                using var request = new HttpRequestMessage(HttpMethod.Get, zipFile);
+                using var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+                response.EnsureSuccessStatusCode();
+
+                await using var stream = await response.Content.ReadAsStreamAsync();
+                await using var fileStream = File.Create(localZipPath);
+                await stream.CopyToAsync(fileStream);
+            }
+
+        }
+
         public void DeleteZipFiles()
         {
-            if (Directory.Exists(EXTRACTPATH))
+            string[] files = Directory.GetFiles(EXTRACTPATH);
+
+            foreach (string file in files)
             {
-                Directory.Delete(EXTRACTPATH, true);
-                Console.WriteLine("Pasta de extração removida com sucesso.");
-            }
-            else
-            {
-                Console.WriteLine("A pasta de extração não existe.");
+                File.Delete(file);
+                Console.WriteLine($"Arquivo deletado: {file}");
             }
         }
 
@@ -182,7 +181,8 @@ namespace WorkerService1.Services
                where TMap : ClassMap<TEntity>
         {
             var entities = await _csvParserService.ParseToEntities<TEntity, TMap>(filePath.FilePath);
-            await _massiveRepository.InsertDataAsync(entities);
+
+                await _massiveRepository.InsertDataAsync(entities);
         }
     }
 }

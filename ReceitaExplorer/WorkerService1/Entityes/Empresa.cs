@@ -37,7 +37,7 @@ namespace WorkerService1.Entityes
         [ForeignKey(nameof(NaturezaJuridica))]
         [Column("natureza_juridica_id")]
         public string? IdNaturezaJuridica { get; set; }
-        public NaturezaJuridica NaturezaJuridica { get; set; } = new NaturezaJuridica();
+        public NaturezaJuridica NaturezaJuridica { get; set; }
 
 
 

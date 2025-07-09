@@ -110,26 +110,26 @@ namespace WorkerService1.Entityes
         [ForeignKey(nameof(Motivos))]
         [Column("motivo_situacao_cadastral_id")]
         public string? IdMotivo { get; set; }
-        public Motivo Motivos { get; init; } = new Motivo();
+        public Motivo? Motivos { get; init; } 
 
         [ForeignKey(nameof(Empresa))]
         [Column("empresa_id")]
         public Guid? IdEmpresa { get; set; }
-        public Empresa Empresa { get; init; } = new Empresa();
+        public Empresa? Empresa { get; init; } 
 
         [ForeignKey(nameof(Municipios))]
         [Column("municipio_id")]
         public string? IdMunicipio { get; set; }
-        public Municipio Municipios { get; init; } = new Municipio();
+        public Municipio? Municipios { get; init; } 
 
-        [ForeignKey(nameof(pais))]
+        [ForeignKey(nameof(Pais))]
         [Column("pais_id")]
         public string? IdPais { get; set; }
-        public Pais pais { get; set; } = new Pais();
+        public Pais? Pais { get; set; } 
 
         [ForeignKey(nameof(Cnae))]
         [Column("cnae_id")]
         public string IdCnae { get; set; } = string.Empty;
-        public Cnae Cnae { get; set; } = new Cnae();
+        public Cnae? Cnae { get; set; } 
     }
 }
